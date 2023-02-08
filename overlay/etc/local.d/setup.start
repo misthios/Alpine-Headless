@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Redirect stdout and errors to console as rc.local does not log anything
+exec 1>/dev/console 2>&1
+
+#Use sed to "fix" https://gitlab.alpinelinux.org/alpine/alpine-conf/-/merge_requests/136/ 
+#Sed is used to just patch out the broken line because we only care about network answerfiles
+#todo: remove when a new alpine-conf version is released with the patch
+sed -i '41s/$(realpath "$OPTARG")/"$OPTARG"/' /sbin/setup-alpine
+
+#Start the installer with the answer file from 
+#Setup will create temp network connection to be able to download the file
+#Note that -e means Empty root password
+#yes is used to make sure that the installer doesnt get suck on asking to erease disks and just does it
+yes | setup-alpine -e -f <url>
+
+
+#Cleanup the system
+rc-update del local default
+rm /etc/local.d/setup.start
+
+#Setup is done so shutdown the system to remove the overlay media
+poweroff
