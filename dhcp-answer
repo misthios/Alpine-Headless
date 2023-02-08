@@ -1,0 +1,26 @@
+ KEYMAPOPTS="us us-altgr-intl"
+ HOSTNAMEOPTS="-n alpine-unattended"
+ DEVDOPTS=mdev
+
+ # Contents of /etc/network/interfaces
+ INTERFACESOPTS="
+ iface lo inet loopback
+
+ auto eth0
+    iface eth0 inet dhcp
+     hostname alpine-unattended
+ "
+
+ DNSOPTS="-d alpine-unattended.local 1.1.1.1"
+
+ TIMEZONEOPTS="-z Europe/Amsterdam"
+ PROXYOPTS=none
+ APKREPOSOPTS="-1 -c"
+
+ SSHDOPTS="-c openssh"
+ NTPOPTS="-c openntpd"
+ DISKOPTS="-m sys /dev/sda"
+ LBUOPTS=none
+ APKCACHEOPTS=none
+ USEROPTS="-a -u -g wheel admin"
+ USERSSHKEY="https://git.plabble.org/misthios.keys"
