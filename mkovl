@@ -80,6 +80,10 @@ chmod +x overlay/etc/local.d/setup.start
 if ! tar czvf setup.apkovl.tar.gz -C overlay etc >/dev/null 2>&1; then err "Failed to generate overlay";fi
 info "Finished generating overlay"
 
+#revert the setup.start file 
+info "Executing sed.."
+if ! sed -i "s#"$URL"#<url>#" ./overlay/etc/local.d/setup.start >/dev/null 2>&1; then err "Failed to execute sed.";fi
+
 #generate the iso
 info "Creating iso.."
 if ! mkisofs -o "$INAME".iso setup.apkovl.tar.gz >/dev/null 2>&1; then err "Failed to create iso";fi
