@@ -1,0 +1,88 @@
+#!/bin/sh
+#
+#==================================================================================================
+#title           :mkovl
+#description     :generate a overlay iso
+#author          :Wesley van Tilburg
+#license         :MIT
+#date            :13/03/2023
+#version         :0.1
+#=================================================================================================
+
+usage(){ printf "mkovl v0.1; 
+USAGE
+	mkovl  [args...]
+ARGS
+	-d enable debug logging
+	-f the file containing a post install script
+	-n the iso name
+	-u url for the answerfile
+	-h show this menu
+";
+exit 0
+}
+
+#=================Util functions=================
+log(){ printf '\033[%sm%-0s \e[0m| %s\n' "${1:-33}" "$2" "$3";}
+
+debug(){ if [ "$DEBUG" ]; then log "37" "DEBUG" "$1";fi }
+info(){  log "34" "INFO" "$1";}
+err(){ log "06;31" "ERROR" "$1"; exit 1; }
+
+#================= Dependency Logic =================
+#Check if the requirements are installed
+tools="mkisofs tar"
+for tool in $tools
+do
+	if ! command -v "$tool" >/dev/null; then err "Missing dependency: $tool";fi
+done
+
+#================= Argument Logic=================
+#handle input
+while getopts 'df:n:u::h' OPTION 2>/dev/null; do
+	case "$OPTION" in
+		d) DEBUG=true;;
+		f) FILE="$OPTARG";;
+		n) INAME="$OPTARG";;
+		u) URL="$OPTARG";;
+		*) usage;;
+	esac
+done
+
+: ${INAME:="overlay-latest"}
+
+#check the required argument
+if [ -z "$URL" ] ; then err "The url cannot be empty"; fi;
+
+debug "NAME: $INAME"
+debug "URL: $URL"
+
+#check if $FILE is given and that the file exists
+if [ -n "$FILE" ] && [ -f "$FILE" ]; then
+	debug "FILE: $FILE"
+	#make sure that the first line has a shebang
+	if ! cat "$FILE" | head -n1 | grep -q "#!"; then err "Invalid file found."; fi
+
+	#make the file executable and copy it into the overlay
+	chmod +x "$FILE"
+	cp "$FILE" "./overlay/etc/local.d/post.start"
+fi
+
+
+
+#replace <url> in the template with the actual url
+info "Executing sed.."
+if ! sed -i "s#<url>#"$URL"#" ./overlay/etc/local.d/setup.start >/dev/null 2>&1; then err "Failed to execute sed.";fi
+
+#generate overlay
+info "Generating overlay.."
+chmod +x overlay/etc/local.d/setup.start
+if ! tar czvf setup.apkovl.tar.gz -C overlay etc >/dev/null 2>&1; then err "Failed to generate overlay";fi
+info "Finished generating overlay"
+
+#generate the iso
+info "Creating iso.."
+if ! mkisofs -o "$INAME".iso setup.apkovl.tar.gz >/dev/null 2>&1; then err "Failed to create iso";fi
+info "Finished creating iso '$INAME'"
+
+
