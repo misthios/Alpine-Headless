@@ -8,25 +8,36 @@ Another feature is loading an APKOVL after the iso to make additional packages /
 
 This Repo combines both features to create a overlay which pulls an specified answerfile to make deploying Alpine easier.
 
+## Features
+* create overlays with different urls to deploy servers
+* (optional) run a script after the new server has booted
+
 ## Note
 This tool requires a network with a functional DHCP server in order to fetch the answerfile with the final iface options. 
 
 ## Installing
-Make sure to install xorisso and make
+Make sure to install the dependency xorriso
 
 Clone the repo
 ```bash
 git clone https://github.com/misthios/Alpine-Headless.git && cd Alpine-Headless 
+chmod +x ./mkovl
 ```
 ## Usage
-First create the overlay with the url to the answerfile
+create the overlay with the url to the answerfile
 ```bash
-make URL=https://domain.tld/path 
+./mkovl <-d> <-f <script location>> -u <answerfile url>  <-n overlay-myname>
 ```
 
-Example:
+Examples:
 ```
-make URL=https://raw.githubusercontent.com/misthios/Alpine-Headless/main/dhcp-answer
+./mkovl -u https://raw.githubusercontent.com/misthios/Alpine-Headless/main/dhcp-answer
+```
+```
+./mkovl -u https://raw.githubusercontent.com/misthios/Alpine-Headless/main/dhcp-answer -n overlay-dhcp
+```
+```
+./mkovl -u https://raw.githubusercontent.com/misthios/Alpine-Headless/main/dhcp-answer -f ./myscript
 ```
 
 ## Credits
